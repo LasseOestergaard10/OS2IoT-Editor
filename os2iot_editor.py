@@ -126,7 +126,7 @@ app.layout = dbc.Container([
         is_open=False
     )
 
-], fluid=True)   # 🔥 FIXED
+], fluid=True)   
 
 
 # =========================================
@@ -345,5 +345,6 @@ def open_browser():
 if __name__ == "__main__":
     threading.Timer(1, open_browser).start()
     app.run(debug=False)
+
 
 
