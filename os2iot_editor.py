@@ -16,8 +16,13 @@ import dash_bootstrap_components as dbc
 # ===============================
 load_dotenv()
 
-base_url = os.getenv("os2iot_BASE_URL").rstrip("/")
+base_url = os.getenv("os2iot_BASE_URL")
 os2iot_api = os.getenv("os2iot_api")
+
+if not base_url or not os2iot_api:
+    raise ValueError("Missing environment variables: os2iot_BASE_URL or os2iot_api")
+
+base_url = base_url.rstrip("/")
 
 headers = {
     "X-API-KEY": os2iot_api,
@@ -121,7 +126,7 @@ app.layout = dbc.Container([
         is_open=False
     )
 
-], fluid=False)
+], fluid=True)   # 🔥 FIXED
 
 
 # =========================================
@@ -134,6 +139,9 @@ app.layout = dbc.Container([
     prevent_initial_call=True
 )
 def show_file_info(contents, filename):
+    if not contents:
+        return ""
+
     decoded = base64.b64decode(contents.split(',')[1])
     df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
     return dbc.Alert(f"Fil indlæst: {filename} ({len(df)} rækker)",
@@ -154,6 +162,9 @@ def show_file_info(contents, filename):
     prevent_initial_call=True
 )
 def generate_preview(n_clicks, contents):
+
+    if not contents:
+        return "", True, True, [], ""
 
     decoded = base64.b64decode(contents.split(',')[1])
     df = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
@@ -235,18 +246,24 @@ def generate_preview(n_clicks, contents):
             "Status": "Ændres" if changed else "Ingen ændring"
         })
 
-    table = dbc.Table.from_dataframe(pd.DataFrame(preview_rows),
-                                     striped=True,
-                                     bordered=True)
+    table = html.Div(
+        dbc.Table.from_dataframe(
+            pd.DataFrame(preview_rows),
+            striped=True,
+            bordered=True,
+            hover=True,
+            responsive=True
+        ),
+        style={"overflowX": "auto"}
+    )
 
     header = f"Ændringer overblik (Ændres: {change_count} / {len(preview_rows)})"
 
     return table, change_count == 0, False, payload, header
 
 
-
 # =========================================
-# ÅBN PAYLOAD MODAL
+# MODALS + APPLY
 # =========================================
 @app.callback(
     Output("payload-modal", "is_open"),
@@ -257,19 +274,13 @@ def generate_preview(n_clicks, contents):
     State("payload-modal", "is_open"),
 )
 def toggle_payload(show_clicks, close_clicks, payload, is_open):
-
     if show_clicks and not is_open:
         return True, json.dumps(payload, indent=4, ensure_ascii=False)
-
     if close_clicks and is_open:
         return False, ""
-
     return is_open, ""
 
 
-# =========================================
-# CONFIRM MODAL
-# =========================================
 @app.callback(
     Output("confirm-modal", "is_open"),
     Output("confirm-text", "children"),
@@ -290,9 +301,6 @@ def close_confirm(n):
     return False
 
 
-# =========================================
-# EXECUTE PUT
-# =========================================
 @app.callback(
     Output("final-status", "children"),
     Output("confirm-modal", "is_open", allow_duplicate=True),
@@ -337,4 +345,5 @@ def open_browser():
 if __name__ == "__main__":
     threading.Timer(1, open_browser).start()
     app.run(debug=False)
+
 
