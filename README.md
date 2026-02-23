@@ -48,7 +48,9 @@ name,id,latitude,longitude,metadata
 Example:
 
 name,id,latitude,longitude,metadata
+
 Temperature Sensor A,123,56.1629,10.2039,"{""floor"": ""2""}"
+
 Humidity Sensor B,124,56.1700,10.2100,
 
 - id must match an existing OS2IoT device ID.
