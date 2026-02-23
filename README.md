@@ -31,6 +31,7 @@ Powershell: python -m pip install dash dash-bootstrap-components pandas requests
 Create a .env file in the same folder as the script:
 
 os2iot_BASE_URL=https://your-os2iot-api/devices
+
 os2iot_api=YOUR_API_KEY
 
 - os2iot_BASE_URL must point directly to the device endpoint (without trailing slash).
